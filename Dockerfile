@@ -1,10 +1,6 @@
-FROM ubuntu:16.04
+FROM ubuntu:16.04 as builder
 
 ENV LC_ALL en_US.UTF-8
-
-VOLUME [ "/data" ]
-
-WORKDIR /root/images
 
 ADD . /tmp/
 
@@ -57,7 +53,12 @@ RUN apt-get update \
 	&& ./clear_tree \
 	&& ./build_firmware \
 	&& mkdir -p /root/images \
-	&& cp /opt/rt-n56u/trunk/images/*.trx /root/images \
-	&& rm -rf /tmp/ \
-	&& rm -rf /opt/* \
-	&& rm -rf /var/lib/apt/lists/*
+	&& cp /opt/rt-n56u/trunk/images/*.trx /root/images
+
+FROM alpine
+
+VOLUME [ "/data" ]
+
+WORKDIR /root/images
+
+COPY --from=builder /root/images /root/images
